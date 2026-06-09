@@ -6,11 +6,11 @@ from uuid import uuid4
 
 from func.get_logging import get_logger
 
-logging = get_logger("bronze_extract_products")
+logging = get_logger("bronze_extract_carts")
 
 try:
     logging.info("iniciando extração de cliente")
-    url = "https://dummyjson.com/products"
+    url = "https://dummyjson.com/carts"
     limit = 100
     skip = 0
     total = 1
@@ -21,16 +21,15 @@ try:
                 "skip": skip,
                 "limit": limit
             }
-            response = client.get(url=url, params=params)
+            response = client.get(url=url, params=params)            
             response.raise_for_status()
             data = response.json()
-            
-            if "products" not in data:
+            if "carts" not in data:
                 logging.warning(f"Resposta inesperada: {data}")
                 break
 
             total = data["total"]
-            batch.extend(data["products"])
+            batch.extend(data["carts"])
             skip += limit
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -47,8 +46,8 @@ try:
         df.write
         .format("delta")
         .mode("append")
-        .saveAsTable("ecommerce.bronze.products")
+        .saveAsTable("ecommerce.bronze.carts")
     )
-    logging.info(f"{df.count()} linhas gravadas na base bronze.products")
+    logging.info(f"{df.count()} linhas gravadas na base bronze.carts")
 except Exception as e:
     logging.error(e)
